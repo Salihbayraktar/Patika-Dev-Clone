@@ -1,8 +1,10 @@
 package com.patikadev.Model;
 
 import com.patikadev.Helper.DBConnector;
+import com.patikadev.Helper.Helper;
 
 import java.net.URL;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -46,8 +48,53 @@ public class Content {
                 obj.setExplanation(rs.getString("explanation"));
                 obj.setYoutubeLink(rs.getString("youtube_link"));
                 obj.setQuizQuestions(rs.getString("quiz_questions"));
-                System.out.println(rs.getString("title"));
-                System.out.println(obj.getTitle());
+                //System.out.println(rs.getString("title"));
+                //System.out.println(obj.getTitle());
+                contents.add(obj);
+
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return contents;
+    }
+
+    public static ArrayList<Content> getFilteredContents (User user, String courseName, String contentTitle){
+        ArrayList<Content> contents = new ArrayList<>();
+        String query = "";
+        if ("All".equals(courseName) && "All".equals(contentTitle)){
+            return getContentsByUserId(user);
+        } else if ("All".equals(courseName)) {
+            System.out.println("All coursename e eşit");
+            query = "SELECT * FROM content WHERE title = '" + contentTitle +"'";
+        } else if ("All".equals(contentTitle)) {
+            System.out.println("All contenttitle a eşit");
+            int courseId = Course.getFetch(courseName).getId();
+            query = "SELECT * FROM content WHERE course_id = " + courseId;
+        } else {
+            System.out.println("hepsi alldan farklı");
+            int courseId = Course.getFetch(courseName).getId();
+            query = "SELECT * FROM content WHERE course_id = " + courseId + " AND title = '" + contentTitle + "'";
+        }
+        Content obj;
+        System.out.println(query);
+        //query = "SELECT * FROM content";
+        try (Statement st = DBConnector.getInstance().createStatement();
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                System.out.println("While a girdi");
+                obj = new Content();
+                obj.setId(rs.getInt("id"));
+                obj.setCourseId(rs.getInt("course_id"));
+                obj.setEducatorId(rs.getInt("educator_id"));
+                obj.setTitle(rs.getString("title"));
+                obj.setExplanation(rs.getString("explanation"));
+                obj.setYoutubeLink(rs.getString("youtube_link"));
+                obj.setQuizQuestions(rs.getString("quiz_questions"));
+                //System.out.println(rs.getString("title"));
+                //System.out.println(obj.getTitle());
                 contents.add(obj);
 
             }
@@ -86,6 +133,62 @@ public class Content {
         }
 
         return courses;
+    }
+    public static boolean addContent(String courseName, User user, String title, String explanation, String youtubeLink, String quizQuestions){
+        int courseId = Course.getFetch(courseName).getId();
+        int educatorId = user.getId();
+        boolean result = false;
+        String query = "INSERT INTO content (course_id, educator_id, title, explanation, youtube_link, quiz_questions) VALUES (?, ?, ?, ?, ?, ?)";
+        try(PreparedStatement pstmt = DBConnector.getInstance().prepareStatement(query)) {
+
+            pstmt.setInt(1, courseId);
+            pstmt.setInt(2, educatorId);
+            pstmt.setString(3, title);
+            pstmt.setString(4, explanation);
+            pstmt.setString(5, youtubeLink);
+            pstmt.setString(6, quizQuestions);
+
+            result = pstmt.executeUpdate() != -1;
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        if (result) {
+            Helper.showMsg("done");
+        } else {
+            Helper.showMsg("error");
+        }
+        return result;
+    }
+
+    //Content.getDistinctTitles
+    public static ArrayList<String> getDistinctTitles(User user, String courseName) {
+        //coursename e göre hepsini getir
+        ArrayList<String> titles = new ArrayList<>();
+        String query = "";
+        if ("All".equals(courseName)) {
+            query = "SELECT DISTINCT(title) FROM content WHERE educator_id = " + user.getId();
+        } else {
+            int courseId = Course.getFetch(courseName).getId();
+            query = "SELECT DISTINCT(title) FROM content WHERE course_id = " + courseId;
+        }
+
+        try (Statement st = DBConnector.getInstance().createStatement();
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                String title = rs.getString("title");
+                //System.out.println(title);
+                titles.add(title);
+
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+
+        return titles;
     }
 
     public int getId() {
