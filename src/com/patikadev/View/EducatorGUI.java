@@ -5,14 +5,13 @@ import com.patikadev.Helper.Helper;
 import com.patikadev.Helper.Item;
 import com.patikadev.Model.Content;
 import com.patikadev.Model.Course;
+import com.patikadev.Model.Patika;
 import com.patikadev.Model.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class EducatorGUI extends JFrame {
@@ -20,7 +19,10 @@ public class EducatorGUI extends JFrame {
     private final DefaultTableModel mdl_educator_content;
     private final Object[] row_course_list;
     private final Object[] row_content_list;
+    private Object[] row_content_list2;
     private final User user;
+    private DefaultTableModel mdl_content_list;
+    private JPopupMenu contentMenu;
     private JPanel wrapper;
     private JTable tbl_course_list;
     private JLabel lbl_educator_welcome;
@@ -73,6 +75,82 @@ public class EducatorGUI extends JFrame {
 
 
         //Content
+
+        //--------------------------------------------------------------------------
+        // PatikaList
+        contentMenu = new JPopupMenu();
+        JMenuItem updateMenu = new JMenuItem("Update");
+        JMenuItem deleteMenu = new JMenuItem("Delete");
+        contentMenu.add(updateMenu);
+        contentMenu.add(deleteMenu);
+
+        updateMenu.addActionListener(e -> {
+            System.out.println("Update Worked");
+            int selectId = Integer.parseInt(tbl_content_list.getValueAt(tbl_content_list.getSelectedRow(), 0).toString());
+            int courseId = Integer.parseInt(tbl_content_list.getValueAt(tbl_content_list.getSelectedRow(),1).toString());
+            //int educatorId = Integer.parseInt(tbl_content_list.getValueAt(tbl_content_list.getSelectedRow(),2).toString());
+            System.out.println("Select id : " + selectId);
+            System.out.println("Course id : " + courseId);
+            UpdateContentGUI updateGUI = new UpdateContentGUI(selectId,courseId);
+            updateGUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    System.out.println("Güncelleme ekrani kapandı");
+                    loadContentModel(user);
+                    loadContentTitleCmb(user, cmb_content_courses.getSelectedItem().toString());
+                    loadEducatorContent(user, cmb_educator_courses.getItemAt(0).toString());
+                    //loadContentCoursesCmb();
+                    //loadEducatorCourses();
+
+                }
+            });
+        });
+
+        deleteMenu.addActionListener(e -> {
+            System.out.println("Delete Worked");
+            if (Helper.confirm("sure")) {
+                int selectId = Integer.parseInt(tbl_content_list.getValueAt(tbl_content_list.getSelectedRow(), 0).toString());
+                System.out.println("Secili content silindi");
+                Content.delete(selectId);
+                loadContentModel(user);
+                loadContentTitleCmb(user, cmb_content_courses.getSelectedItem().toString());
+                loadEducatorContent(user, cmb_educator_courses.getItemAt(0).toString());
+                //System.out.println("select id" + select_id);
+                //Course.deleteAllPatikasInCourses(select_id);
+                //Patika.delete(Patika.getFetch(select_id).getId());
+                //loadPatikaModel();
+                //loadCoursePatikaCmb();
+                // loadCourseModel();
+            }
+        });
+
+        mdl_content_list = new DefaultTableModel();
+        Object[] col_content_list = {"ID", "Course ID", "Title", "Explanation", "Youtube Link", "Quiz Questions"};
+        mdl_content_list.setColumnIdentifiers(col_content_list);
+        row_content_list2 = new Object[col_content_list.length];
+        //loadPatikaModel();
+        tbl_content_list.getTableHeader().setReorderingAllowed(false);
+        tbl_content_list.setModel(mdl_content_list);
+        //JPopupMenu.setDefaultLightWeightPopupEnabled( false );*/
+        tbl_content_list.setComponentPopupMenu(contentMenu);
+        tbl_content_list.getColumnModel().getColumn(0).setMaxWidth(50);
+
+        tbl_content_list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                Point point = e.getPoint();
+                int selected_row = tbl_content_list.rowAtPoint(point);
+                tbl_content_list.setRowSelectionInterval(selected_row, selected_row);
+                super.mousePressed(e);
+            }
+        });
+        // ## PatikaList
+        //--------------------------------------------------------------------------
+
+
+
+
+
         mdl_educator_content = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -80,7 +158,7 @@ public class EducatorGUI extends JFrame {
                 return super.isCellEditable(row, column);
             }
         };
-        Object[] col_content_list = {"ID", "Course ID", "Title", "Explanation", "Youtube Link", "Quiz Questions"};
+        //Object[] col_content_list = {"ID", "Course ID", "Title", "Explanation", "Youtube Link", "Quiz Questions"};
         mdl_educator_content.setColumnIdentifiers(col_content_list);
 
         row_content_list = new Object[col_content_list.length];
@@ -153,6 +231,10 @@ public class EducatorGUI extends JFrame {
                 loadEducatorContent(user, cmb_educator_courses.getItemAt(0).toString());
             }
         });
+
+
+
+
     }
 
     public static void main(String[] args) {

@@ -3,7 +3,6 @@ package com.patikadev.Model;
 import com.patikadev.Helper.DBConnector;
 import com.patikadev.Helper.Helper;
 
-import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,7 +32,7 @@ public class Content {
         this.quizQuestions = quizQuestions;
     }
 
-    public static ArrayList<Content> getContentsByUserId(User user){
+    public static ArrayList<Content> getContentsByUserId(User user) {
         ArrayList<Content> contents = new ArrayList<>();
         String query = "SELECT * FROM content WHERE educator_id = " + user.getId();
         Content obj;
@@ -61,14 +60,14 @@ public class Content {
         return contents;
     }
 
-    public static ArrayList<Content> getFilteredContents (User user, String courseName, String contentTitle){
+    public static ArrayList<Content> getFilteredContents(User user, String courseName, String contentTitle) {
         ArrayList<Content> contents = new ArrayList<>();
         String query = "";
-        if ("All".equals(courseName) && "All".equals(contentTitle)){
+        if ("All".equals(courseName) && "All".equals(contentTitle)) {
             return getContentsByUserId(user);
         } else if ("All".equals(courseName)) {
             System.out.println("All coursename e eşit");
-            query = "SELECT * FROM content WHERE title = '" + contentTitle +"'";
+            query = "SELECT * FROM content WHERE title = '" + contentTitle + "'";
         } else if ("All".equals(contentTitle)) {
             System.out.println("All contenttitle a eşit");
             int courseId = Course.getFetch(courseName).getId();
@@ -106,7 +105,7 @@ public class Content {
         return contents;
     }
 
-    public static ArrayList<Course> getDistinctCourses(User user){
+    public static ArrayList<Course> getDistinctCourses(User user) {
         String query = "SELECT DISTINCT(course_id)  FROM content WHERE educator_id = " + user.getId();
         ArrayList<Course> courses = new ArrayList<>();
 
@@ -134,12 +133,36 @@ public class Content {
 
         return courses;
     }
-    public static boolean addContent(String courseName, User user, String title, String explanation, String youtubeLink, String quizQuestions){
+
+    public static boolean update(int id, String title, String explanation, String youtubeLink, String quizQuestions) {
+        String query = "UPDATE content SET title = ?, explanation = ?, youtube_link = ?, quiz_questions = ? WHERE id = " + id;
+        boolean result = false;
+        try (PreparedStatement pstmt = DBConnector.getInstance().prepareStatement(query)) {
+            pstmt.setString(1, title);
+            pstmt.setString(2, explanation);
+            pstmt.setString(3, youtubeLink);
+            pstmt.setString(4, quizQuestions);
+            //pstmt.setString(5,quizQuestions);
+            result = pstmt.executeUpdate() != -1;
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        if (result) {
+            Helper.showMsg("done");
+        } else {
+            Helper.showMsg("error");
+        }
+
+        return result;
+    }
+
+    public static boolean addContent(String courseName, User user, String title, String explanation, String youtubeLink, String quizQuestions) {
         int courseId = Course.getFetch(courseName).getId();
         int educatorId = user.getId();
         boolean result = false;
         String query = "INSERT INTO content (course_id, educator_id, title, explanation, youtube_link, quiz_questions) VALUES (?, ?, ?, ?, ?, ?)";
-        try(PreparedStatement pstmt = DBConnector.getInstance().prepareStatement(query)) {
+        try (PreparedStatement pstmt = DBConnector.getInstance().prepareStatement(query)) {
 
             pstmt.setInt(1, courseId);
             pstmt.setInt(2, educatorId);
@@ -189,6 +212,22 @@ public class Content {
 
 
         return titles;
+    }
+
+    public static boolean delete(int id) {
+        String query = "DELETE FROM content WHERE id = " + id;
+        boolean result = false;
+        try (PreparedStatement pstmt = DBConnector.getInstance().prepareStatement(query)) {
+            result = pstmt.executeUpdate() != -1;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        if (result) {
+            Helper.showMsg("done");
+        } else {
+            Helper.showMsg("error");
+        }
+        return result;
     }
 
     public int getId() {
