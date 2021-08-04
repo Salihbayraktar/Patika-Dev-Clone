@@ -3,10 +3,7 @@ package com.patikadev.Model;
 import com.patikadev.Helper.DBConnector;
 import com.patikadev.Helper.Helper;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Course {
@@ -19,7 +16,7 @@ public class Course {
     private Patika patika;
     private User educator;
 
-    public Course(){
+    public Course() {
 
     }
 
@@ -159,6 +156,29 @@ public class Course {
         }
 
         return obj;
+    }
+
+    public static ArrayList<Course> getCoursesByPatikaId(int patikaId) {
+        ArrayList<Course> courses = new ArrayList<>();
+        String query = "SELECT * FROM course WHERE patika_id = " + patikaId;
+        Course course;
+        try (Connection connection = DBConnector.getInstance();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+            while (resultSet.next()) {
+                course = new Course();
+                course.setId(resultSet.getInt("id"));
+                course.setUser_id(resultSet.getInt("user_id"));
+                course.setPatika_id(resultSet.getInt("patika_id"));
+                course.setName(resultSet.getString("name"));
+                course.setLang(resultSet.getString("lang"));
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return courses;
     }
 
     /*

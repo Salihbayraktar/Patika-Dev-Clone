@@ -2,10 +2,11 @@ package com.patikadev.View;
 
 import com.patikadev.Helper.Config;
 import com.patikadev.Helper.Helper;
-import com.patikadev.Model.Operator;
 import com.patikadev.Model.User;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginGUI extends JFrame {
     private JPanel wrapper;
@@ -14,6 +15,7 @@ public class LoginGUI extends JFrame {
     private JTextField fld_user_uname;
     private JTextField fld_user_pass;
     private JButton btn_login;
+    private JButton btn_create_student;
 
     public LoginGUI() {
         add(wrapper);
@@ -38,13 +40,19 @@ public class LoginGUI extends JFrame {
                             EducatorGUI eduGUI = new EducatorGUI(u);
                             break;
                         case "student":
-                            StudentGUI stuGUI = new StudentGUI();
+                            StudentGUI stuGUI = new StudentGUI(u);
                             break;
                     }
                     dispose();
                 } else {
                     Helper.showMsg("User not found!");
                 }
+            }
+        });
+        btn_create_student.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                NewStudentGUI newStudentGUI = new NewStudentGUI();
             }
         });
     }

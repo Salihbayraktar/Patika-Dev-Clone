@@ -66,24 +66,55 @@ public class Content {
         if ("All".equals(courseName) && "All".equals(contentTitle)) {
             return getContentsByUserId(user);
         } else if ("All".equals(courseName)) {
-            System.out.println("All coursename e eşit");
+            //System.out.println("All coursename e eşit");
             query = "SELECT * FROM content WHERE title = '" + contentTitle + "'";
         } else if ("All".equals(contentTitle)) {
-            System.out.println("All contenttitle a eşit");
+            //System.out.println("All contenttitle a eşit");
             int courseId = Course.getFetch(courseName).getId();
             query = "SELECT * FROM content WHERE course_id = " + courseId;
         } else {
-            System.out.println("hepsi alldan farklı");
+            //System.out.println("hepsi alldan farklı");
             int courseId = Course.getFetch(courseName).getId();
             query = "SELECT * FROM content WHERE course_id = " + courseId + " AND title = '" + contentTitle + "'";
         }
         Content obj;
-        System.out.println(query);
+        //System.out.println(query);
         //query = "SELECT * FROM content";
         try (Statement st = DBConnector.getInstance().createStatement();
              ResultSet rs = st.executeQuery(query)) {
             while (rs.next()) {
-                System.out.println("While a girdi");
+                //System.out.println("While a girdi");
+                obj = new Content();
+                obj.setId(rs.getInt("id"));
+                obj.setCourseId(rs.getInt("course_id"));
+                obj.setEducatorId(rs.getInt("educator_id"));
+                obj.setTitle(rs.getString("title"));
+                obj.setExplanation(rs.getString("explanation"));
+                obj.setYoutubeLink(rs.getString("youtube_link"));
+                obj.setQuizQuestions(rs.getString("quiz_questions"));
+                //System.out.println(rs.getString("title"));
+                //System.out.println(obj.getTitle());
+                contents.add(obj);
+
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return contents;
+    }
+
+    public static ArrayList<Content> getContentsByCourse(int courseId){
+        ArrayList<Content> contents = new ArrayList<>();
+        String query = "SELECT * FROM content WHERE course_id = " + courseId;
+        Content obj;
+        //System.out.println(query);
+        //query = "SELECT * FROM content";
+        try (Statement st = DBConnector.getInstance().createStatement();
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                //System.out.println("While a girdi");
                 obj = new Content();
                 obj.setId(rs.getInt("id"));
                 obj.setCourseId(rs.getInt("course_id"));
@@ -212,6 +243,13 @@ public class Content {
 
 
         return titles;
+    }
+
+    @Deprecated
+    public static ArrayList<Content> getContentsByPatikaId(int patikaId){
+        ArrayList<Content> contents = new ArrayList<>();
+        String query = "SELECT * FROM content WHERE patika_id = " + patikaId;
+        return null;
     }
 
     public static boolean delete(int id) {
